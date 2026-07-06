@@ -1,16 +1,19 @@
+import os
 import pandas as pd
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy import text
 
-USER = 'myuser'
-PASSWORD = 'Password'
-HOST = 'localhost'
-PORT = '5432'
-DB_NAME = 'smartreco_db'
-DATABASE_URL = 'postgresql://{}:{}@{}:{}/{}'.format(USER, PASSWORD, HOST, PORT, DB_NAME)
+load_dotenv()
 
+USER = os.environ["POSTGRES_USER"]
+PASSWORD = os.environ["POSTGRES_PASSWORD"]
+HOST = os.getenv("POSTGRES_HOST", "localhost")
+PORT = os.getenv("POSTGRES_PORT", "5432")
+DB_NAME = os.environ["POSTGRES_DB"]
+
+DATABASE_URL = f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB_NAME}"
 engine = create_engine(DATABASE_URL)
 
-query="SELECT * FROM raw.users LIMIT 5;"
+query = "SELECT * FROM raw.users LIMIT 5;"
 df = pd.read_sql_query(query, engine)
 print(df)

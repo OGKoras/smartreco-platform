@@ -15,7 +15,7 @@ for i in range(1, num_users+1):
         'gender': fake.random_element(elements=('M', 'F')),
         'country': random.choice(["Poland", "Germany", "Ukraine", "Czech Republic", "Slovakia", "Lithuania"]),
         'registration_date': fake.date_between(start_date='-2y', end_date='today'),
-        'premium': random.choice([True, False])
+        'premium': random.random() < 0.15
     })
 df_users = pd.DataFrame(users_data)
 df_users.to_csv('users_data.csv', index=False)
