@@ -1,0 +1,47 @@
+[0m12:30:47.620507 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001423D0FDBE0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001423A9E0A50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001423F94BB10>]}
+
+
+============================== 12:30:47.625724 | 47c7668e-5ac0-4b4b-ba5b-12b02c400868 ==============================
+[0m12:30:47.625724 [info ] [MainThread]: Running with dbt=1.12.0-b3
+[0m12:30:47.626445 [debug] [MainThread]: running dbt with arguments {'maximum_seed_size_mib': '1', 'no_print': 'None', 'static_parser': 'True', 'target_path': 'None', 'version_check': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'printer_width': '80', 'write_json': 'True', 'empty': 'None', 'log_cache_events': 'False', 'introspect': 'True', 'cache_selected_only': 'False', 'log_format': 'default', 'debug': 'False', 'fail_fast': 'False', 'profiles_dir': 'C:\\Users\\oskar\\.dbt', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'partial_parse': 'True', 'indirect_selection': 'eager', 'invocation_command': 'dbt init smartreco_transform', 'use_colors': 'True', 'use_experimental_parser': 'False', 'log_path': 'logs'}
+[0m12:30:47.650148 [info ] [MainThread]: Creating dbt configuration folder at C:\Users\oskar\.dbt
+[0m12:30:47.652559 [debug] [MainThread]: Starter project path: C:\Users\oskar\OneDrive\Pulpit\Proj\smartreco-platform\.venv\Lib\site-packages\dbt\include\starter_project
+[0m12:30:47.671031 [info ] [MainThread]: Setting up your profile.
+[0m12:31:34.038530 [error] [MainThread]: [[31mERROR[0m]: Encountered an error:
+
+[0m12:31:34.057381 [error] [MainThread]: Traceback (most recent call last):
+  File "C:\Users\oskar\OneDrive\Pulpit\Proj\smartreco-platform\.venv\Lib\site-packages\dbt\cli\requires.py", line 190, in wrapper
+    result, success = func(*args, **kwargs)
+                      ~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\oskar\OneDrive\Pulpit\Proj\smartreco-platform\.venv\Lib\site-packages\dbt\cli\requires.py", line 136, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\oskar\OneDrive\Pulpit\Proj\smartreco-platform\.venv\Lib\site-packages\dbt\cli\main.py", line 503, in init
+    results = task.run()
+  File "C:\Users\oskar\OneDrive\Pulpit\Proj\smartreco-platform\.venv\Lib\site-packages\dbt\task\init.py", line 360, in run
+    self.setup_profile(profile_name)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\oskar\OneDrive\Pulpit\Proj\smartreco-platform\.venv\Lib\site-packages\dbt\task\init.py", line 264, in setup_profile
+    self.create_profile_from_target(adapter, profile_name=profile_name)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\oskar\OneDrive\Pulpit\Proj\smartreco-platform\.venv\Lib\site-packages\dbt\task\init.py", line 181, in create_profile_from_target
+    self.create_profile_from_profile_template(profile_template, profile_name)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\oskar\OneDrive\Pulpit\Proj\smartreco-platform\.venv\Lib\site-packages\dbt\task\init.py", line 165, in create_profile_from_profile_template
+    target = self.generate_target_from_input(prompts, initial_target)
+  File "C:\Users\oskar\OneDrive\Pulpit\Proj\smartreco-platform\.venv\Lib\site-packages\dbt\task\init.py", line 131, in generate_target_from_input
+    target[key] = click.prompt(
+                  ~~~~~~~~~~~~^
+        text, default=default, hide_input=hide_input, type=type
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\oskar\OneDrive\Pulpit\Proj\smartreco-platform\.venv\Lib\site-packages\click\termui.py", line 218, in prompt
+    value = prompt_func(prompt)
+  File "C:\Users\oskar\OneDrive\Pulpit\Proj\smartreco-platform\.venv\Lib\site-packages\click\termui.py", line 201, in prompt_func
+    raise Abort() from None
+click.exceptions.Abort
+
+[0m12:31:34.058875 [debug] [MainThread]: Command `dbt init` failed at 12:31:34.058721 after 46.59 seconds
+[0m12:31:34.059475 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001423FB90C30>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001423FA8F0B0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001423FAC6470>]}
+[0m12:31:34.060076 [debug] [MainThread]: Flushing usage events
+[0m12:31:34.995830 [debug] [MainThread]: An error was encountered while trying to flush usage events
