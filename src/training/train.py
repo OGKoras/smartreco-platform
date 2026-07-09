@@ -7,6 +7,7 @@ from implicit.als import AlternatingLeastSquares
 import mlflow
 from implicit.evaluation import ranking_metrics_at_k
 from implicit.evaluation import train_test_split
+import json
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 load_dotenv()
@@ -57,12 +58,20 @@ if __name__ == "__main__":
         df['user_code'] = user_category.cat.codes
         df['product_code'] = product_category.cat.codes
 
+        user_id_to_code = {str(k): int(v) for k, v in zip(df['user_id'], df['user_code'])}
         user_code_to_id = dict(enumerate(user_category.cat.categories))
-        product_code_to_id = dict(enumerate(product_category.cat.categories))
 
+        product_code_to_id = dict(enumerate(product_category.cat.categories))
+        product_code_to_id_str = {str(k): int(v) for k, v in product_code_to_id.items()}
+        with open("user_id_to_code.json", "w") as f:
+            json.dump(user_id_to_code, f)
+        with open("product_code_to_id.json", "w") as f:
+            json.dump(product_code_to_id_str, f)
+
+        mlflow.log_artifact("user_id_to_code.json", artifact_path="mappings")
+        mlflow.log_artifact("product_code_to_id.json", artifact_path="mappings")
         num_unique_users = user_category.nunique()
         num_unique_products = product_category.nunique()
-
         interaction_matrix = sparse.coo_matrix(
             (
                 df['interaction_strength'].astype(float),
@@ -70,6 +79,8 @@ if __name__ == "__main__":
             ),
             shape=(num_unique_users, num_unique_products)
         ).tocsr()
+        sparse.save_npz("interaction_matrix.npz", interaction_matrix)
+        mlflow.log_artifact("interaction_matrix.npz", artifact_path="matrices")
 
         print(f"Unique users count:    {interaction_matrix.shape[0]}")
         print(f"Unique products count: {interaction_matrix.shape[1]}")
