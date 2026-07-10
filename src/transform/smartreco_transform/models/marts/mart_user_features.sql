@@ -39,6 +39,7 @@ SELECT
     COALESCE(rm.count_purchases_last_7_days, 0) AS count_purchases_last_7_days,
     rm.favorite_category_last_7_days,
     COALESCE(sm.avg_daily_session_duration_minutes, 0.00) AS avg_daily_session_duration_minutes
+    CURRENT_TIMESTAMP AS event_timestamp
 FROM {{ ref('dim_users') }} u
 LEFT JOIN recent_metrics rm ON u.user_id = rm.user_id
 LEFT JOIN session_metrics sm ON u.user_id = sm.user_id
