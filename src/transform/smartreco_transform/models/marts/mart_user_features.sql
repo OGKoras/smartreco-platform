@@ -18,7 +18,7 @@ recent_metrics AS (
 session_metrics AS (
     SELECT
         user_id,
-        AVG(LEAST(EXTRACT(EPOCH FROM (max_ts - min_ts)) / 60, 120))::NUMERIC(10, 2) AS avg_session_duration_minutes
+        AVG(LEAST(EXTRACT(EPOCH FROM (max_ts - min_ts)) / 60, 120))::NUMERIC(10, 2) AS avg_daily_session_duration_minutes
     FROM (
         SELECT
             user_id,
@@ -38,7 +38,7 @@ SELECT
     COALESCE(rm.count_clicks_last_7_days, 0) AS count_clicks_last_7_days,
     COALESCE(rm.count_purchases_last_7_days, 0) AS count_purchases_last_7_days,
     rm.favorite_category_last_7_days,
-    COALESCE(sm.avg_daily_session_duration_minutes, 0.00) AS avg_daily_session_duration_minutes
+    COALESCE(sm.avg_daily_session_duration_minutes, 0.00) AS avg_daily_session_duration_minutes,
     CURRENT_TIMESTAMP AS event_timestamp
 FROM {{ ref('dim_users') }} u
 LEFT JOIN recent_metrics rm ON u.user_id = rm.user_id

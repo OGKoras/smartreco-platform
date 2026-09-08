@@ -2,3 +2,5 @@
 .env
 .idea
 check_marts.py
+.idea/
+src/transform/logs/

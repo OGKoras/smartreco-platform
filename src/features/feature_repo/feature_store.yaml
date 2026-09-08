@@ -10,7 +10,7 @@ offline_store:
     db_schema: analytics
     user: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
-
+    sslmode: disable
 online_store:
     type: redis
     connection_string: "${REDIS_HOST}:${REDIS_PORT}"
