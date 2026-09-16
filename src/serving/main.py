@@ -1,3 +1,4 @@
+from pathlib import Path
 from fastapi import FastAPI
 import os
 import redis
@@ -8,12 +9,15 @@ import mlflow
 import mlflow.sklearn
 from contextlib import asynccontextmanager
 from mlflow.tracking import MlflowClient
+from feast import FeatureStore
 import json
 
 RECOMMENDER_MODEL = None
 USER_MAPPING = {}
 PRODUCT_MAPPING = {}
 TRAIN_INTERACTION_MATRIX = None
+FEATURE_STORE = None
+
 load_dotenv()
 
 def require_env(key: str) -> str:
@@ -35,8 +39,7 @@ REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 
 DATABASE_URL = "postgresql://{}:{}@{}:{}/{}".format(USER, PASSWORD, HOST, PORT, DB_NAME)
 
-MAX_RETRIES = 10
-RETRY_DELAY_SECONDS = 3
+FEATURE_REPO_PATH = str(Path(__file__).resolve().parent.parent / "features" / "feature_repo")
 
 mlflow.set_tracking_uri("http://localhost:5000")
 engine = create_engine(DATABASE_URL)
@@ -45,7 +48,7 @@ redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=Tr
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global RECOMMENDER_MODEL, USER_MAPPING, PRODUCT_MAPPING, TRAIN_INTERACTION_MATRIX
+    global RECOMMENDER_MODEL, USER_MAPPING, PRODUCT_MAPPING, TRAIN_INTERACTION_MATRIX, FEATURE_STORE
 
     print("Searching for the latest model in MLflow...")
     client = MlflowClient()
@@ -78,24 +81,53 @@ async def lifespan(app: FastAPI):
 
     TRAIN_INTERACTION_MATRIX = sparse.load_npz(local_matrix_path)
 
-    print("All model components and mappings loaded successfully!")
+    print(f"Connecting to Feast feature store at: {FEATURE_REPO_PATH}")
+    FEATURE_STORE = FeatureStore(repo_path=FEATURE_REPO_PATH)
+
+    print("All model components, mappings and Feast connection loaded successfully!")
 
     yield
 
     print("Shutting down the application...")
 
 app = FastAPI(lifespan=lifespan)
+
+
+def get_user_context(user_id: int) -> dict | None:
+    """Pobiera cechy kontekstowe użytkownika z Feast Online Store (Redis) — milisekundy."""
+    try:
+        result = FEATURE_STORE.get_online_features(
+            features=[
+                "user_features:count_interactions_last_7_days",
+                "user_features:count_clicks_last_7_days",
+                "user_features:count_purchases_last_7_days",
+                "user_features:avg_daily_session_duration_minutes",
+            ],
+            entity_rows=[{"user_id": user_id}],
+        ).to_dict()
+
+        return {
+            key: values[0]
+            for key, values in result.items()
+            if key != "user_id"
+        }
+    except Exception as e:
+        print(f"Nie udało się pobrać cech z Feast dla user_id={user_id}: {e}")
+        return None
+
+
 @app.get("/users/{user_id}/recommendations")
 def get_recommendations(user_id: int):
     cache_key = f"user:reco:{user_id}"
     cached_data = redis_client.get(cache_key)
     if cached_data:
         return json.loads(cached_data)
+
     str_user_id = str(user_id)
-    recommendations = []
     if str_user_id not in USER_MAPPING:
         print(f"User {user_id} not found in the model. Returning fallback (most popular)...")
         return [{"product_id": 9999, "score": 0.0, "note": "Cold-start fallback"}]
+
     user_code = USER_MAPPING[str_user_id]
     user_profile_interactions = TRAIN_INTERACTION_MATRIX[user_code]
 
@@ -104,6 +136,8 @@ def get_recommendations(user_id: int):
         user_items=user_profile_interactions,
         N=10
     )
+
+    recommendations = []
     for product_code, score in zip(ids.tolist(), scores.tolist()):
         str_product_code = str(product_code)
         if str_product_code in PRODUCT_MAPPING:
@@ -113,7 +147,10 @@ def get_recommendations(user_id: int):
                 "score": float(score)
             })
 
+    response = {
+        "recommendations": recommendations,
+        "user_context": get_user_context(user_id),
+    }
 
-    redis_client.setex(cache_key, 60, json.dumps(recommendations))
-
-    return recommendations
+    redis_client.setex(cache_key, 60, json.dumps(response))
+    return response

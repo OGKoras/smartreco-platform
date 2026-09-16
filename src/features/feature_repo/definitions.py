@@ -8,9 +8,8 @@ user = Entity(name="user_id", join_keys=["user_id"], value_type=ValueType.INT64)
 
 user_features_source = PostgreSQLSource(
     name="mart_user_features_source",
-    query="SELECT * FROM analytics.mart_user_features",  # docelowy schemat marts/analytics
-    timestamp_field="event_timesta"
-                    "mp",
+    query="SELECT * FROM analytics.mart_user_features",
+    timestamp_field="event_timestamp",
 )
 
 user_features_view = FeatureView(

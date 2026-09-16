@@ -4,3 +4,5 @@
 check_marts.py
 .idea/
 src/transform/logs/
+__pycache__/
+*.pyc
