@@ -1,0 +1,12 @@
+dbt-core
+dbt-postgres
+feast[postgres,redis]
+implicit
+mlflow
+pandas
+scipy
+sqlalchemy
+psycopg2-binary
+python-dotenv
+pydantic
+redis
