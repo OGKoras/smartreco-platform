@@ -41,7 +41,7 @@ DATABASE_URL = "postgresql://{}:{}@{}:{}/{}".format(USER, PASSWORD, HOST, PORT, 
 
 FEATURE_REPO_PATH = str(Path(__file__).resolve().parent.parent / "features" / "feature_repo")
 
-mlflow.set_tracking_uri("http://localhost:5000")
+mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
 engine = create_engine(DATABASE_URL)
 redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
 

@@ -26,7 +26,13 @@ services:
       - "5000:5000"
     volumes:
       - ./mlflow_data:/mlflow
-    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:////mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+      --allowed-hosts localhost,mlflow,mlflow_server
   airflow_postgres:
       image: postgres:15
       container_name: airflow_postgres
@@ -54,6 +60,10 @@ services:
         AIRFLOW__CORE__EXECUTOR: LocalExecutor
         AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow_postgres/airflow
         AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+        AIRFLOW__WEBSERVER__SECRET_KEY: "3154c1b81696e4fb776983ba28fc4115"
+        POSTGRES_HOST: postgres_db
+        REDIS_HOST: redis
+        MLFLOW_TRACKING_URI: http://mlflow:5000
       entrypoint: /bin/bash
       command:
         - -c
@@ -75,6 +85,10 @@ services:
         AIRFLOW__CORE__EXECUTOR: LocalExecutor
         AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow_postgres/airflow
         AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+        AIRFLOW__WEBSERVER__SECRET_KEY: "3154c1b81696e4fb776983ba28fc4115"
+        POSTGRES_HOST: postgres_db
+        REDIS_HOST: redis
+        MLFLOW_TRACKING_URI: http://mlflow:5000
       ports:
         - "8080:8080"
       volumes:
@@ -96,6 +110,10 @@ services:
         AIRFLOW__CORE__EXECUTOR: LocalExecutor
         AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow_postgres/airflow
         AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+        AIRFLOW__WEBSERVER__SECRET_KEY: "3154c1b81696e4fb776983ba28fc4115"
+        POSTGRES_HOST: postgres_db
+        REDIS_HOST: redis
+        MLFLOW_TRACKING_URI: http://mlflow:5000
       volumes:
         - ./dags:/opt/airflow/dags
         - .:/opt/airflow/smartreco
