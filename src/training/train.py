@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 from scipy import sparse
 from implicit.als import AlternatingLeastSquares
@@ -36,19 +36,34 @@ engine = create_engine(DATABASE_URL)
 
 def load_data():
     print("Loading data...")
+
     query = """
-            SELECT user_id, product_id, COUNT(*) AS interaction_strength
-            FROM analytics.fact_events
-            WHERE user_id IS NOT NULL
-              AND product_id IS NOT NULL
-            GROUP BY user_id, product_id;
-            """
-    return pd.read_sql_query(query, engine)
+        SELECT user_id, product_id, COUNT(*) AS interaction_strength
+        FROM staging.fact_events
+        WHERE user_id IS NOT NULL
+          AND product_id IS NOT NULL
+        GROUP BY user_id, product_id;
+    """
+
+    db_url = os.getenv("ANALYTICS_DATABASE_URL")
+    if not db_url:
+        raise ValueError("Brak zmiennej ANALYTICS_DATABASE_URL")
+
+    engine = create_engine(db_url)
+
+    try:
+        with engine.connect() as connection:
+            result = connection.execute(text(query))
+            df = pd.DataFrame(result.fetchall(), columns=result.keys())
+            return df
+    finally:
+        engine.dispose()
+
 
 
 if __name__ == "__main__":
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
-    mlflow.set_experiment("smartreco-als")
+    mlflow.set_experiment("smartreco-als2")
     with mlflow.start_run():
         df = load_data()
         print(f"Success! Loaded {len(df)} interaction rows.")

@@ -31,8 +31,10 @@ services:
       --host 0.0.0.0
       --port 5000
       --backend-store-uri sqlite:////mlflow/mlflow.db
-      --default-artifact-root /mlflow/artifacts
-      --allowed-hosts localhost,mlflow,mlflow_server
+      --serve-artifacts
+      --artifacts-destination /mlflow/artifacts
+      --allowed-hosts "*"
+
   airflow_postgres:
       image: postgres:15
       container_name: airflow_postgres
@@ -114,6 +116,7 @@ services:
         POSTGRES_HOST: postgres_db
         REDIS_HOST: redis
         MLFLOW_TRACKING_URI: http://mlflow:5000
+        ANALYTICS_DATABASE_URL: ${ANALYTICS_DATABASE_URL}
       volumes:
         - ./dags:/opt/airflow/dags
         - .:/opt/airflow/smartreco

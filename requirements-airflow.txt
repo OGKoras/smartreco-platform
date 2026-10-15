@@ -5,7 +5,7 @@ implicit
 mlflow
 pandas
 scipy
-sqlalchemy
+sqlalchemy==1.4.54
 psycopg2-binary
 python-dotenv
 pydantic

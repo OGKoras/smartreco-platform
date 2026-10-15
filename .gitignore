@@ -6,3 +6,4 @@ check_marts.py
 src/transform/logs/
 __pycache__/
 *.pyc
+mlflow_data/
