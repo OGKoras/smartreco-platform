@@ -13,13 +13,20 @@ default_args = {
 
 with DAG(
     dag_id="smartreco_daily_pipeline",
-    description="Codzienny pipeline: walidacja danych -> dbt -> Feast -> trening modelu",
+    description="Codzienny pipeline: generowanie danych -> walidacja danych -> dbt -> Feast -> trening modelu",
     default_args=default_args,
     schedule="0 3 * * *",
     start_date=datetime(2026, 1, 1),
     catchup=False,
     tags=["smartreco", "mlops"],
 ) as dag:
+    generate_fresh_events = BashOperator(
+        task_id="generate_fresh_events",
+        bash_command=(
+            f"cd {PROJECT_ROOT} && "
+            "python src/ingestion/generate_fresh_events.py"
+        )
+    )
 
     validate_data = BashOperator(
         task_id="validate_data",
@@ -47,4 +54,4 @@ with DAG(
         bash_command=f"cd {PROJECT_ROOT}/src/training && python train.py",
     )
 
-    validate_data >> run_dbt_transformations >> materialize_features >> train_model
+    generate_fresh_events >> validate_data >> run_dbt_transformations >> materialize_features >> train_model
