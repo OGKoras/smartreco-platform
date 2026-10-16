@@ -8,5 +8,5 @@ smartreco_transform:
       password: "{{ env_var('POSTGRES_PASSWORD') }}"
       port: "{{ env_var('POSTGRES_PORT', '5432') | int }}"
       dbname: "{{ env_var('POSTGRES_DB') }}"
-      schema: staging
+      schema: analytics
       threads: 4
