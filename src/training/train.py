@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from scipy import sparse
 from implicit.als import AlternatingLeastSquares
 import mlflow
-from implicit.evaluation import ranking_metrics_at_k
 from implicit.evaluation import train_test_split
 import json
 
@@ -117,8 +116,50 @@ if __name__ == "__main__":
 
         print("Starting ALS model training...")
         model.fit(train_matrix)
-        metrics = ranking_metrics_at_k(model, train_matrix, test_matrix, K=10)
-        mlflow.log_metric("recall_at_10", metrics["precision"])
+
+        K = 10
+
+        train_matrix = train_matrix.tocsr()
+        test_matrix = test_matrix.tocsr()
+
+        recall_values = []
+        precision_values = []
+
+        for user_id in range(test_matrix.shape[0]):
+            relevant_items = set(test_matrix[user_id].indices.tolist())
+
+            # Oceniamy tylko użytkowników mających interakcje testowe.
+            if not relevant_items:
+                continue
+
+            recommended_ids, scores = model.recommend(
+                userid=user_id,
+                user_items=train_matrix[user_id],
+                N=K,
+                filter_already_liked_items=True,
+            )
+
+            recommended_items = set(int(item_id) for item_id in recommended_ids)
+            hits = len(relevant_items & recommended_items)
+
+            recall_values.append(hits / len(relevant_items))
+            precision_values.append(hits / K)
+
+        if not recall_values:
+            raise RuntimeError(
+                "Cannot evaluate the model: no users have test interactions."
+            )
+
+        recall_at_10 = sum(recall_values) / len(recall_values)
+        precision_at_10 = sum(precision_values) / len(precision_values)
+
+        mlflow.log_metric("recall_at_10", recall_at_10)
+        mlflow.log_metric("precision_at_10", precision_at_10)
+        mlflow.log_metric("evaluation_users", len(recall_values))
+
+        print(f"Recall@{K}:    {recall_at_10:.4f}")
+        print(f"Precision@{K}: {precision_at_10:.4f}")
+        print(f"Evaluated users: {len(recall_values)}")
 
         target_user_code = 0
         ids, scores = model.recommend(
