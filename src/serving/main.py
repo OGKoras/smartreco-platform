@@ -52,8 +52,15 @@ async def lifespan(app: FastAPI):
 
     print("Searching for the latest model in MLflow...")
     client = MlflowClient()
+    EXPERIMENT_NAME = os.getenv(
+        "MLFLOW_EXPERIMENT_NAME", "smartreco-als2"
+    )
+    experiment = client.get_experiment_by_name(EXPERIMENT_NAME)
 
-    experiment = client.get_experiment_by_name("smartreco-als")
+    if experiment is None:
+        raise RuntimeError(
+            f"MLflow experiment '{EXPERIMENT_NAME}' does not exist!"
+        )
     runs = client.search_runs(
         experiment_ids=[experiment.experiment_id],
         filter_string="status = 'FINISHED'",
@@ -94,7 +101,6 @@ app = FastAPI(lifespan=lifespan)
 
 
 def get_user_context(user_id: int) -> dict | None:
-    """Pobiera cechy kontekstowe użytkownika z Feast Online Store (Redis) — milisekundy."""
     try:
         result = FEATURE_STORE.get_online_features(
             features=[

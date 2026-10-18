@@ -59,7 +59,9 @@ def load_data():
 
 if __name__ == "__main__":
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
-    mlflow.set_experiment("smartreco-als2")
+    mlflow.set_experiment(
+        os.getenv("MLFLOW_EXPERIMENT_NAME", "smartreco-als2")
+    )
     with mlflow.start_run():
         df = load_data()
         print(f"Success! Loaded {len(df)} interaction rows.")
