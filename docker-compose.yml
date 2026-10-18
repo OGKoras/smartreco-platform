@@ -62,7 +62,7 @@ services:
         AIRFLOW__CORE__EXECUTOR: LocalExecutor
         AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow_postgres/airflow
         AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-        AIRFLOW__WEBSERVER__SECRET_KEY: "3154c1b81696e4fb776983ba28fc4115"
+        AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_SECRET_KEY}
         POSTGRES_HOST: postgres_db
         REDIS_HOST: redis
         MLFLOW_TRACKING_URI: http://mlflow:5000
@@ -87,7 +87,7 @@ services:
         AIRFLOW__CORE__EXECUTOR: LocalExecutor
         AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow_postgres/airflow
         AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-        AIRFLOW__WEBSERVER__SECRET_KEY: "3154c1b81696e4fb776983ba28fc4115"
+        AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_SECRET_KEY}
         POSTGRES_HOST: postgres_db
         REDIS_HOST: redis
         MLFLOW_TRACKING_URI: http://mlflow:5000
@@ -112,7 +112,7 @@ services:
         AIRFLOW__CORE__EXECUTOR: LocalExecutor
         AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow_postgres/airflow
         AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-        AIRFLOW__WEBSERVER__SECRET_KEY: "3154c1b81696e4fb776983ba28fc4115"
+        AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_SECRET_KEY}
         POSTGRES_HOST: postgres_db
         REDIS_HOST: redis
         MLFLOW_TRACKING_URI: http://mlflow:5000
@@ -139,7 +139,7 @@ services:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow_postgres/airflow
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-      AIRFLOW__WEBSERVER__SECRET_KEY: "3154c1b81696e4fb776983ba28fc4115"
+      AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_SECRET_KEY}
       POSTGRES_HOST: postgres_db
       REDIS_HOST: redis
       MLFLOW_TRACKING_URI: http://mlflow:5000

@@ -7,6 +7,8 @@ from implicit.als import AlternatingLeastSquares
 import mlflow
 from implicit.evaluation import train_test_split
 import json
+import tempfile
+from pathlib import Path
 
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 load_dotenv()
@@ -93,6 +95,25 @@ if __name__ == "__main__":
             ),
             shape=(num_unique_users, num_unique_products)
         ).tocsr()
+
+        with tempfile.TemporaryDirectory(prefix="smartreco-") as temp_dir:
+            temp_path = Path(temp_dir)
+
+            user_mapping_path = temp_path / "user_id_to_code.json"
+            product_mapping_path = temp_path / "product_code_to_id.json"
+            matrix_path = temp_path / "interaction_matrix.npz"
+
+            with open(user_mapping_path, "w") as f:
+                json.dump(user_id_to_code, f)
+
+            with open(product_mapping_path, "w") as f:
+                json.dump(product_code_to_id_str, f)
+
+            sparse.save_npz(matrix_path, interaction_matrix)
+
+            mlflow.log_artifact(str(user_mapping_path), artifact_path="mappings")
+            mlflow.log_artifact(str(product_mapping_path), artifact_path="mappings")
+            mlflow.log_artifact(str(matrix_path), artifact_path="matrices")
         sparse.save_npz("interaction_matrix.npz", interaction_matrix)
         mlflow.log_artifact("interaction_matrix.npz", artifact_path="matrices")
 
@@ -128,7 +149,7 @@ if __name__ == "__main__":
         for user_id in range(test_matrix.shape[0]):
             relevant_items = set(test_matrix[user_id].indices.tolist())
 
-            # Oceniamy tylko użytkowników mających interakcje testowe.
+
             if not relevant_items:
                 continue
 

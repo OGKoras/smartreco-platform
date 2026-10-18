@@ -7,3 +7,6 @@ src/transform/logs/
 __pycache__/
 *.pyc
 mlflow_data/
+mlflow.db
+src/training/*.json
+src/training/*.npz
