@@ -40,17 +40,12 @@ def load_data():
 
     query = """
         SELECT user_id, product_id, COUNT(*) AS interaction_strength
-        FROM staging.fact_events
+        FROM analytics.fact_events
         WHERE user_id IS NOT NULL
           AND product_id IS NOT NULL
         GROUP BY user_id, product_id;
     """
 
-    db_url = os.getenv("ANALYTICS_DATABASE_URL")
-    if not db_url:
-        raise ValueError("Brak zmiennej ANALYTICS_DATABASE_URL")
-
-    engine = create_engine(db_url)
 
     try:
         with engine.connect() as connection:
@@ -79,13 +74,7 @@ if __name__ == "__main__":
 
         product_code_to_id = dict(enumerate(product_category.cat.categories))
         product_code_to_id_str = {str(k): int(v) for k, v in product_code_to_id.items()}
-        with open("user_id_to_code.json", "w") as f:
-            json.dump(user_id_to_code, f)
-        with open("product_code_to_id.json", "w") as f:
-            json.dump(product_code_to_id_str, f)
 
-        mlflow.log_artifact("user_id_to_code.json", artifact_path="mappings")
-        mlflow.log_artifact("product_code_to_id.json", artifact_path="mappings")
         num_unique_users = user_category.nunique()
         num_unique_products = product_category.nunique()
         interaction_matrix = sparse.coo_matrix(
@@ -114,8 +103,6 @@ if __name__ == "__main__":
             mlflow.log_artifact(str(user_mapping_path), artifact_path="mappings")
             mlflow.log_artifact(str(product_mapping_path), artifact_path="mappings")
             mlflow.log_artifact(str(matrix_path), artifact_path="matrices")
-        sparse.save_npz("interaction_matrix.npz", interaction_matrix)
-        mlflow.log_artifact("interaction_matrix.npz", artifact_path="matrices")
 
         print(f"Unique users count:    {interaction_matrix.shape[0]}")
         print(f"Unique products count: {interaction_matrix.shape[1]}")
