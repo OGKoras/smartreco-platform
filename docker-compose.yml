@@ -117,7 +117,6 @@ services:
         REDIS_HOST: redis
         MLFLOW_TRACKING_URI: http://mlflow:5000
         MLFLOW_EXPERIMENT_NAME: ${MLFLOW_EXPERIMENT_NAME:-smartreco-als2}
-        ANALYTICS_DATABASE_URL: ${ANALYTICS_DATABASE_URL}
       volumes:
         - ./dags:/opt/airflow/dags
         - .:/opt/airflow/smartreco
