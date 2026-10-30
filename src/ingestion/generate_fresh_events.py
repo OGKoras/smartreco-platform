@@ -1,6 +1,7 @@
 import os
 import random
 import uuid
+from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
 from dotenv import load_dotenv
@@ -8,6 +9,23 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import URL
 
 load_dotenv()
+
+DEFAULT_CATEGORY_WEIGHT = 10
+
+COUNTRY_CATEGORY_WEIGHTS = {
+    "Poland": {"Electronics": 40, "Home and Garden": 20},
+    "Germany": {"Apparel": 40, "Sports and Outdoors": 20},
+    "Lithuania": {"Sports and Outdoors": 40, "Cosmetics": 20},
+    "Ukraine": {"Home and Garden": 40, "Books and Entertainment": 20},
+    "Czech Republic": {"Books and Entertainment": 40, "Electronics": 20},
+    "Slovakia": {"Cosmetics": 40, "Apparel": 20},
+}
+
+
+def category_weights(country, categories):
+    affinity = COUNTRY_CATEGORY_WEIGHTS.get(country, {})
+    return [affinity.get(category, DEFAULT_CATEGORY_WEIGHT) for category in categories]
+
 
 BATCH_SIZE = int(os.getenv("FRESH_EVENTS_BATCH_SIZE", "1000"))
 
@@ -42,8 +60,6 @@ def main():
     if BATCH_SIZE <= 0:
         raise ValueError("FRESH_EVENTS_BATCH_SIZE must be greater than zero")
 
-    # Airflow supplies the same DAG run ID when retrying a task.
-    # A UUID is used only when running the script outside Airflow.
     batch_key = (
         os.getenv("FRESH_EVENTS_BATCH_KEY")
         or os.getenv("AIRFLOW_CTX_DAG_RUN_ID")
@@ -54,7 +70,6 @@ def main():
 
     try:
         with engine.begin() as conn:
-            # Create a small audit table to track processed batches.
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS raw.ingestion_batches (
                     batch_key TEXT PRIMARY KEY,
@@ -64,7 +79,6 @@ def main():
                     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                 )
             """))
-
 
             conn.execute(
                 text("SELECT pg_advisory_xact_lock(8745201)")
@@ -90,18 +104,23 @@ def main():
                 return
 
             users = conn.execute(
-                text("SELECT user_id FROM raw.users")
-            ).scalars().all()
+                text("SELECT user_id, country FROM raw.users")
+            ).all()
 
             products = conn.execute(
-                text("SELECT product_id FROM raw.products")
-            ).scalars().all()
+                text("SELECT product_id, category FROM raw.products")
+            ).all()
 
             if not users:
                 raise RuntimeError("raw.users is empty. Load initial data first.")
 
             if not products:
                 raise RuntimeError("raw.products is empty. Load initial data first.")
+
+            products_by_category = defaultdict(list)
+            for product_id, category in products:
+                products_by_category[category].append(product_id)
+            categories = sorted(products_by_category)
 
             max_event_id = conn.execute(
                 text("SELECT COALESCE(MAX(event_id), 0) FROM raw.events")
@@ -116,10 +135,15 @@ def main():
             for i in range(1, BATCH_SIZE + 1):
                 event_time = start + (now - start) * rng.random()
 
+                user_id, country = rng.choice(users)
+                category = rng.choices(
+                    categories, weights=category_weights(country, categories), k=1
+                )[0]
+
                 events.append({
                     "event_id": max_event_id + i,
-                    "user_id": rng.choice(users),
-                    "product_id": rng.choice(products),
+                    "user_id": user_id,
+                    "product_id": rng.choice(products_by_category[category]),
                     "event_type": rng.choices(
                         EVENT_TYPES, weights=EVENT_WEIGHTS, k=1
                     )[0],

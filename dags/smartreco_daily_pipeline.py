@@ -40,7 +40,13 @@ with DAG(
             f"dbt run --profiles-dir ."
         ),
     )
-
+    feast_apply = BashOperator(
+        task_id="feast_apply",
+        bash_command=(
+            f"cd {PROJECT_ROOT}/src/features/feature_repo && "
+            "feast apply"
+        ),
+    )
     materialize_features = BashOperator(
         task_id="materialize_features",
         bash_command=(
@@ -54,4 +60,4 @@ with DAG(
         bash_command=f"cd {PROJECT_ROOT}/src/training && python train.py",
     )
 
-    generate_fresh_events >> validate_data >> run_dbt_transformations >> materialize_features >> train_model
+    generate_fresh_events >> validate_data >> run_dbt_transformations >> feast_apply >> materialize_features >> train_model
